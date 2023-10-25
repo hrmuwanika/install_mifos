@@ -7,7 +7,7 @@
 sudo apt update && sudo upgrade -y
 sudo apt install python-software-properties software-properties-common -y
 sudo add-apt-repository ppa:webupd8team/java
-sudo apt-get update
+sudo apt update
 
 # Install Java
 sudo apt install oracle-java8-installer -y
@@ -25,7 +25,7 @@ sudo groupadd tomcat
 sudo useradd -s /bin/false -g tomcat -d /usr/share/tomcat9 tomcat
 
 # Set directory to download the tomcat
-cd /tmp
+cd /usr/src
 
 # Now download tomcat.
 curl -O https://downloads.apache.org/tomcat/tomcat-9/v9.0.36/bin/apache-tomcat-9.0.36.tar.gz
@@ -44,7 +44,7 @@ sudo tar xzvf apache-tomcat-9.0.36.tar.gz -C /usr/share/tomcat9 --strip-componen
 cd /usr/share/tomcat
 
 # Grant group ownership over the installation directory to the tomcat group with the command:
-sudo chgrp -R tomcat /usr/share/tomcat
+sudo chgrp -R tomcat /usr/share/tomcat9
 
 # Give it read access to the conf directory and its contents by typing:
 sudo chmod -R g+r conf
