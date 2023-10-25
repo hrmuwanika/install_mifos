@@ -1,9 +1,10 @@
-# Youtube: https://www.youtube.com/watch?v=4AVIAz0vbaA&t=4s
-
 #!/bin/sh
 
-# Tomcat installation on Ubuntu: 
+# Tomcat installation on Ubuntu: 20.04 
 # ==============================
+
+# Update ubuntu
+sudo apt update && sudo upgrade -y
 
 # Install OpenJDK
 sudo apt install default-jdk
@@ -50,9 +51,9 @@ sudo chown -R tomcat webapps/ work temp/ logs
 sudo update-java-alternatives -l
 
 # Create and open a new file in the /etc/system/system under the name tomcat.service:
-sudo nano /etc/systemd/system/tomcat.service
+sudo cat <<EOF >  /etc/systemd/system/tomcat.service
 
-#  Once the file opens, copy and paste the content below, changing the JAVA_HOME value to the information you found in the previous step.
+#  Once the file opens, copy and paste the content below, changing the JAVA_HOME value to the information you found in the previous step
 
 [Unit]
 Description=Apache Tomcat Web Application Container
@@ -79,8 +80,8 @@ Restart=always
 
 [Install]
 WantedBy=multi-user.target
+EOF
 
-# Now save it and exit.
 
 # For the changes to take place, reload the system daemon with the command:
 sudo systemctl daemon-reload
