@@ -78,8 +78,8 @@ Environment=CATALINA_BASE=/usr/share/tomcat9
 Environment=’CATALINA_OPTS=-Xms512M –Xmx1024M –server –XX:+UserParallelGC’
 Environment=’JAVA_OPTS=-Djava.awt.headless=true Djava.security.egd=file:/dev/./urandom’
 
-ExecStart=/opt/tomcat/bin/startup.sh
-ExecStop=/opt/tomcat/bin/shutdown.sh
+ExecStart=/usr/share/tomcat9/bin/startup.sh
+ExecStop=/usr/share/tomcat9/bin/shutdown.sh
 
 User=tomcat
 Group=tomcat
@@ -90,7 +90,6 @@ Restart=always
 [Install]
 WantedBy=multi-user.target
 EOF
-
 
 # For the changes to take place, reload the system daemon with the command:
 sudo systemctl daemon-reload
@@ -116,7 +115,7 @@ http://localhost:8080
 # ==================================
 
 # Open the users file with the command:
-sudo nano /opt/tomcat/conf/tomcat=users.xml
+sudo nano /usr/share/tomcat9/conf/tomcat=users.xml
 
 # Scroll down and find the section specifying Tomcat users. Modify it by adding the following:
 
@@ -169,16 +168,14 @@ allow=”127\.\d+\.\d+\.\d+|::1|0000:1|THE.IP.ADDRESS.” />
 # Repeat the same process for the host-manager file.
 
 # Start by opening the file with the command:
-sudo nano /opt/tomcat/latest/webapps/host-manager/META-INF/context.xml
+sudo nano /usr/share/tomcat9/latest/webapps/host-manager/META-INF/context.xml
 
 # Followed by granting access from a) anywhere or b) from a specific IP address (as in the previous step).
 
 # Install mariadb databases
 sudo apt-key adv --fetch-keys 'https://mariadb.org/mariadb_release_signing_key.asc'
 sudo add-apt-repository 'deb [arch=amd64,arm64,ppc64el] https://mariadb.mirror.liquidtelecom.com/repo/10.8/ubuntu focal main'
-
 sudo apt update 
-
 sudo apt install mariadb-server mariadb-client libmariadb-dev -y 
 
 # Remove mariadb strict mode by setting sql_mode = NO_ENGINE_SUBSTITUTION
