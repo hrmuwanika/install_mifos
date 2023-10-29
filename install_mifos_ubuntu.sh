@@ -1,50 +1,39 @@
 #!/bin/sh
 
-# Tomcat installation on Ubuntu: 20.04 
+# Mifos installation on Ubuntu: 22.04 
 # ==============================
 
 # Installing System Updates and Prerequisites
 sudo apt update && sudo upgrade -y
-sudo apt install python-software-properties software-properties-common -y
-sudo add-apt-repository ppa:webupd8team/java
-sudo apt update
 
-# Install Java
-sudo apt install oracle-java8-installer -y
-sudo update-alternatives --config java
+# Installation of Java
+sudo apt install openjdk-11-jdk -y
 
-sudo cat <<EOF > .bashrc 
-export JAVA_HOME=/usr/lib/jvm/java-8-oracle
-export CATALINA_HOME=/usr/share/tomcat9
-EOF
+# To extract the tar.gz Tomcat file, create a new /opt/tomcat/ directory with the command:
+sudo mkdir /opt/tomcat
 
-source ~/.bashrc
-
-# Create Tomcat User and Group (Do run as root). Create a new group and system user to run the Apache Tomcat service from the /usr/share/tomcat9 directory.
+# Create Tomcat User and Group (Do run as root). Create a new group and system user to run the Apache Tomcat service from the /opt/tomcat directory.
 sudo groupadd tomcat
-sudo useradd -s /bin/false -g tomcat -d /usr/share/tomcat9 tomcat
+sudo useradd -m -U -d /opt/tomcat -s /bin/false tomcat 
 
 # Set directory to download the tomcat
 cd /usr/src
 
 # Now download tomcat.
-curl -O https://downloads.apache.org/tomcat/tomcat-9/v9.0.36/bin/apache-tomcat-9.0.36.tar.gz
-
-# To extract the tar.gz Tomcat file, create a new /usr/share/tomcat9/ directory with the command:
-sudo mkdir /usr/share/tomcat9
+wget https://downloads.apache.org/tomcat/tomcat-10/v10.1.15/bin/apache-tomcat-10.1.15.tar.gz
 
 # Now extract tomcat tarbal using the command
-sudo tar xzvf apache-tomcat-9.0.36.tar.gz -C /usr/share/tomcat9 --strip-components=1
-
+sudo tar xzvf apache-tomcat-10.1.15.tar.gz -C /opt/tomcat --strip-components=1
 
 # Modify Tomcat User Permission
 # =============================
 
 # Move to the directory where the Tomcat installation is located:
-cd /usr/share/tomcat
+cd /opt/tomcat
 
 # Grant group ownership over the installation directory to the tomcat group with the command:
-sudo chgrp -R tomcat /usr/share/tomcat9
+sudo chgrp -R tomcat /opt/tomcat
+sudo sh -c 'chmod +x /opt/tomcat/latest/bin/*.sh'
 
 # Give it read access to the conf directory and its contents by typing:
 sudo chmod -R g+r conf
@@ -57,36 +46,28 @@ sudo chown -R tomcat webapps/ work temp/ logs
 
 # Create System Unit File
 # ======================
-
-# To configure the file, you first need to find the “JAVA_HOME” path. This is the exact location of the Java installation package.
-sudo update-java-alternatives -l
-
 # Create and open a new file in the /etc/system/system under the name tomcat.service:
 sudo cat <<EOF >  /etc/systemd/system/tomcat.service
 
 [Unit]
-Description=Apache Tomcat Web Application Container
+Description=Apache Tomcat 10 Web Application Server
 After=network.target
-
+ 
 [Service]
 Type=forking
-
-Environment=JAVA_HOME=/usr/lib/jvm/java-1.11.0-openjdk-amd64
-Environment=CATALINA_PID=/opt/tomcat/latest/temp/tomcat.pid
-Environment=CATALINA_HOME=/usr/share/tomcat9
-Environment=CATALINA_BASE=/usr/share/tomcat9
-Environment=’CATALINA_OPTS=-Xms512M –Xmx1024M –server –XX:+UserParallelGC’
-Environment=’JAVA_OPTS=-Djava.awt.headless=true Djava.security.egd=file:/dev/./urandom’
-
-ExecStart=/usr/share/tomcat9/bin/startup.sh
-ExecStop=/usr/share/tomcat9/bin/shutdown.sh
-
+ 
 User=tomcat
 Group=tomcat
-UMast=0007
-RestartSec=10
-Restart=always
-
+ 
+Environment="JAVA_HOME=/usr/lib/jvm/java-11-openjdk-amd64"
+Environment="CATALINA_HOME=/opt/tomcat"
+Environment="CATALINA_BASE=/opt/tomcat"
+Environment="CATALINA_PID=/opt/tomcat/temp/tomcat.pid"
+Environment="CATALINA_OPTS=-Xms512M -Xmx1024M -server -XX:+UseParallelGC"
+ 
+ExecStart=/opt/tomcat/bin/startup.sh
+ExecStop=/opt/tomcat/bin/shutdown.sh
+ 
 [Install]
 WantedBy=multi-user.target
 EOF
@@ -102,75 +83,67 @@ sudo systemctl status tomcat
 
 # Adjust Firewall
 # ===============
-
 #  Open Port 8080 to allow traffic through it with the command:
 sudo ufw allow 8080/tcp
 
 # If the port is open, you should be able to see the Apache Tomcat splash page. Type the following in the browser window:
-http://server_ip:8080
-or
-http://localhost:8080
+# http://server_ip:8080 or http://localhost:8080
 
 # Configure Web Management Interface
 # ==================================
 
 # Open the users file with the command:
-sudo nano /usr/share/tomcat9/conf/tomcat=users.xml
+sudo nano /opt/tomcat/conf/tomcat=users.xml
 
 # Scroll down and find the section specifying Tomcat users. Modify it by adding the following:
+# Copy and paste the below
 
-------
-<tomcat-users>
-<! --
-Comments
--- >
-<role rolename=”admin-gui”/>
-<role rolename=”manager-gui”/>
-<user username=”admin” password=”Your_Password” roles=”admin-gui, manager-gui”/>
-</tomcat-users>
------
+ <!-- user manager can access only the manager section -->
+ <role rolename="manager-gui" />
+ <user username="manager" password="_SECRET_PASSWORD_" roles="manager-gui" />
+ 
+ <!-- user admin can access manager and admin section both -->
+ <role rolename="admin-gui" />
+ <user username="admin" password="_SECRET_PASSWORD_" roles="manager-gui,admin-gui" />
+
 # Save and Exit the file.
 
-# Configure Remote Access
-# =======================
-
-# First, open the manager file:
 sudo nano /opt/tomcat/webapps/manager/META-INF/context.xml
+# Comment out the section added for IP address restriction to allow connections from anywhere.
 
-# Next, decide whether to grant access from a) anywhere or b) from a specific IP address.
-
-
----------------
-<Context antiResourceLocking=”false” privileged=”true”>
-<! --
-
-<Valve className=”org.apache.catalina.valves.RemoteAddrValve”
-allow=”127\.\d+\.\d+\.\d+|::1|0000:1” />
-
--- >
-
+<Context antiResourceLocking="false" privileged="true" >
+  <CookieProcessor className="org.apache.tomcat.util.http.Rfc6265CookieProcessor"
+                   sameSiteCookies="strict" />
+  <!-- <Valve className="org.apache.catalina.valves.RemoteAddrValve"
+         allow="127\.\d+\.\d+\.\d+|::1|0:0:0:0:0:0:0:1" /> -->
+  ...
 </Context>
-------------------
 
-# To allow access from a specific IP address, add the IP to the previous command, as follows:
------------
-<Context antiResourceLocking=”false” privileged=”true”>
-<! --
+# Save and Exit the file.
 
-<Valve className=”org.apache.catalina.valves.RemoteAddrValve”
-allow=”127\.\d+\.\d+\.\d+|::1|0000:1|THE.IP.ADDRESS.” />
+sudo nano /opt/tomcat/webapps/host-manager/META-INF/context.xml
+# Comment out the same section to allow connections from anywhere.
 
--- >
-
+<Context antiResourceLocking="false" privileged="true" >
+  <CookieProcessor className="org.apache.tomcat.util.http.Rfc6265CookieProcessor"
+                   sameSiteCookies="strict" />
+  <!--<Valve className="org.apache.catalina.valves.RemoteAddrValve"
+         allow="127\.\d+\.\d+\.\d+|::1|0:0:0:0:0:0:0:1" /> -->
+  ...
 </Context>
---------------
 
-# Repeat the same process for the host-manager file.
+# Save and Exit the file.
 
-# Start by opening the file with the command:
-sudo nano /usr/share/tomcat9/latest/webapps/host-manager/META-INF/context.xml
+sudo systemctl restart tomcat
 
-# Followed by granting access from a) anywhere or b) from a specific IP address (as in the previous step).
+# Test the Tomcat Installation
+# http://<your_domain_or_IP_address>:8080
+
+# Tomcat web application manager dashboard is available:
+# http://<your_domain_or_IP_address>:8080/manager/html
+
+# Tomcat virtual host manager dashboard is available:
+# http://<your_domain_or_IP_address>:8080/host-manager/html
 
 # Install mariadb databases
 sudo apt-key adv --fetch-keys 'https://mariadb.org/mariadb_release_signing_key.asc'
