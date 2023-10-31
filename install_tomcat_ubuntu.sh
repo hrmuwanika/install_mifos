@@ -7,7 +7,7 @@
 sudo apt update && sudo upgrade -y
 
 # Installation of Java
-sudo apt install openjdk-11-jdk -y
+sudo apt install openjdk-18-jdk -y
 
 # To extract the tar.gz Tomcat file, create a new /opt/tomcat/ directory with the command:
 sudo mkdir /opt/tomcat
@@ -147,7 +147,7 @@ sudo systemctl restart tomcat
 
 # Install mariadb databases
 sudo apt-key adv --fetch-keys 'https://mariadb.org/mariadb_release_signing_key.asc'
-sudo add-apt-repository 'deb [arch=amd64,arm64,ppc64el] https://mariadb.mirror.liquidtelecom.com/repo/10.8/ubuntu focal main'
+sudo add-apt-repository 'deb [arch=amd64,arm64,ppc64el] https://mariadb.mirror.liquidtelecom.com/repo/10.9/ubuntu focal main'
 sudo apt update 
 sudo apt install mariadb-server mariadb-client libmariadb-dev -y 
 
@@ -160,9 +160,6 @@ sudo systemctl restart mariadb.service
 sudo systemctl enable mariadb.service 
 
 mysql -u root -p << MYSQL_SCRIPT
-create database `fineract_tenants`;
-create database `fineract_default`;
-./gradlew migrateTenantListDB -PdbName=mifosplatform-tenants
-./gradlew migrateTenantDB -PdbName=mifostenant-default
+create database `testdb`;
 exit 
 MYSQL_SCRIPT
