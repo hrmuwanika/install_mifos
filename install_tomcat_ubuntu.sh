@@ -20,10 +20,10 @@ sudo useradd -m -U -d /opt/tomcat -s /bin/false tomcat
 cd /usr/src
 
 # Now download tomcat.
-wget https://downloads.apache.org/tomcat/tomcat-10/v10.1.15/bin/apache-tomcat-10.1.15.tar.gz
+wget https://dlcdn.apache.org/tomcat/tomcat-10/v10.1.17/bin/apache-tomcat-10.1.17.tar.gz
 
 # Now extract tomcat tarbal using the command
-sudo tar xzvf apache-tomcat-10.1.15.tar.gz -C /opt/tomcat --strip-components=1
+sudo tar xzvf apache-tomcat-10.1.17.tar.gz -C /opt/tomcat --strip-components=1
 
 # Modify Tomcat User Permission
 # =============================
