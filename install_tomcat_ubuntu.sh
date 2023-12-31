@@ -6,9 +6,6 @@
 # Installing System Updates and Prerequisites
 sudo apt update && sudo upgrade -y
 
-# Installation of Java
-sudo apt install openjdk-18-jdk -y
-
 # To extract the tar.gz Tomcat file, create a new /opt/tomcat/ directory with the command:
 sudo mkdir /opt/tomcat
 
@@ -20,10 +17,10 @@ sudo useradd -m -U -d /opt/tomcat -s /bin/false tomcat
 cd /usr/src
 
 # Now download tomcat.
-wget https://dlcdn.apache.org/tomcat/tomcat-10/v10.1.17/bin/apache-tomcat-10.1.17.tar.gz
+wget https://dlcdn.apache.org/tomcat/tomcat-10/v10.0.23/bin/apache-tomcat-10.0.23.tar.gz 
 
 # Now extract tomcat tarbal using the command
-sudo tar xzvf apache-tomcat-10.1.17.tar.gz -C /opt/tomcat --strip-components=1
+sudo tar xzvf apache-tomcat-10*tar.gz -C /opt/tomcat --strip-components=1 
 
 # Modify Tomcat User Permission
 # =============================
@@ -32,8 +29,8 @@ sudo tar xzvf apache-tomcat-10.1.17.tar.gz -C /opt/tomcat --strip-components=1
 cd /opt/tomcat
 
 # Grant group ownership over the installation directory to the tomcat group with the command:
-sudo chgrp -R tomcat /opt/tomcat
-sudo sh -c 'chmod +x /opt/tomcat/bin/*.sh'
+sudo chown -R tomcat:tomcat /opt/tomcat/ 
+sudo chmod -R u+x /opt/tomcat/bin 
 
 # Give it read access to the conf directory and its contents by typing:
 sudo chmod -R g+r conf
@@ -55,19 +52,20 @@ After=network.target
  
 [Service]
 Type=forking
- 
+
 User=tomcat
 Group=tomcat
- 
-Environment="JAVA_HOME=/usr/lib/jvm/java-18-openjdk-amd64"
-Environment="CATALINA_HOME=/opt/tomcat"
+
+Environment="JAVA_HOME=/usr/lib/jvm/java-1.18.0-openjdk-amd64"
+Environment="JAVA_OPTS=-Djava.security.egd=file:///dev/urandom"
 Environment="CATALINA_BASE=/opt/tomcat"
+Environment="CATALINA_HOME=/opt/tomcat"
 Environment="CATALINA_PID=/opt/tomcat/temp/tomcat.pid"
 Environment="CATALINA_OPTS=-Xms512M -Xmx1024M -server -XX:+UseParallelGC"
- 
+
 ExecStart=/opt/tomcat/bin/startup.sh
 ExecStop=/opt/tomcat/bin/shutdown.sh
- 
+
 [Install]
 WantedBy=multi-user.target
 EOF
@@ -76,7 +74,8 @@ EOF
 sudo systemctl daemon-reload
 
 # Now, you can finally start the Tomcat service:
-sudo systemctl start tomcat
+sudo systemctl start tomcat.service
+sudo systemctl enable tomcat.service 
 
 # Verify the Apache Tomcat service is running with the command:
 sudo systemctl status tomcat
